@@ -1,11 +1,8 @@
 package com.example.Webserviceupg3.Controllers;
-
 import com.example.Webserviceupg3.Models.Posters;
-import com.example.Webserviceupg3.Repositories.PosterRepository;
-import com.example.Webserviceupg3.Repositories.UserRepository;
+import com.example.Webserviceupg3.Models.User;
 import com.example.Webserviceupg3.Services.PostService;
 import com.example.Webserviceupg3.Services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -16,51 +13,71 @@ import java.util.Collection;
 @RequestMapping("/poster")
 public class PostController {
 
-    @Autowired
-    PostService postService;
+    //Samma sak som @Autowired
+    private final PostService postService;
+    private final UserService userService;
 
-    @Autowired
-    UserService userService;
+    public PostController(PostService postService, UserService userService){
+        this.postService = postService;
+        this.userService = userService;
+    }
+
+
 
     @GetMapping("/all")
-    public Collection<Posters> getPosters(@RequestHeader("token") String token, HttpServletResponse response) {
-        if (userService.validate(token) == null) {
-            response.setStatus(401);
-            return null;
-        }
-
+    public Collection<Posters> getPosters(HttpServletResponse response) {
         return postService.getPosters();
     }
+
     @PostMapping("/create")
-    public String createPoster(@RequestHeader("token") String token, @RequestBody Posters posters, HttpServletResponse response) {
-        if (userService.validate(token) == null) {
+    public Posters createPoster(@RequestHeader("token") String token, @RequestBody Posters posters, HttpServletResponse response) {
+        User user = userService.validate(token);
+        if (posters == null || user == null) {
+            response.setStatus(401);
+            return null;
+        } else {
+            response.setStatus(201);
+            return postService.createPost(posters, user);
+        }
+
+
+    }
+
+    @GetMapping(path = "/user/posts")
+    public Collection<Posters> getUserPosts(@RequestHeader("token") String token, HttpServletResponse response) {
+        User user = userService.validate(token);
+        if (user == null) {
             response.setStatus(401);
             return null;
         }
 
-        int result = postService.createPost(posters);
-        switch (result) {
-            case 1:
-                response.setStatus(409);
-                return "There is already a product with that name";
-            case 0:
-                return "Product has been created";
-            default:
-                response.setStatus(500);
-                return "Something went wrong.";
-        }
+        return user.getMyPosts();
     }
 
-    @DeleteMapping("/delete/{postTitle}")
-    public void deleteProduct(@PathVariable("postTitle") String postName,@RequestHeader("token") String token,  HttpServletResponse response) {
-        if (userService.validate(token)==null){
+
+
+    @DeleteMapping(path = "/delete/{post}")
+    public String deletePost(@PathVariable("post")String post, @RequestHeader("username")String username,@RequestHeader("token") String token,HttpServletResponse response){
+        if (userService.validate(token) == null || post == null || username == null) {
             response.setStatus(401);
-
-        }/* if (userService.){
-         }*/
-        if (!postService.deletePosts(postName))
+        }
+        if (!postService.deletePost(post)){
             response.setStatus(404);
+            return "no post named " + post + " exist";
+        }
 
+        //funkar ej korrekt
+        if (userService.removePost(username,post)){
+            response.setStatus(200);
+        }
+
+        postService.deletePost(post);
+     //   userService.removePost(username,post);
+        return  post + " was successfully removed";
     }
+
+
+
+
 
 }

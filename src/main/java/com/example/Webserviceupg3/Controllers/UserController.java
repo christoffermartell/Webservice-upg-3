@@ -3,7 +3,6 @@ package com.example.Webserviceupg3.Controllers;
 import com.example.Webserviceupg3.Services.UserService;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -13,8 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 @RequestMapping("user")
 public class UserController {
 
-    @Autowired
-    UserService userService;
+    //Samma sak som  @Autowired
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
 
     @PostMapping("/register")
     public String registerUser(@RequestBody UserCreate user, HttpServletResponse response){

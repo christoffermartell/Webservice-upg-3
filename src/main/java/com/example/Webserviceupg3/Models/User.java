@@ -11,11 +11,11 @@ import java.util.List;
 public class User {
 
     private String name, password;
-    private List<Posters> favorites;
+    private List<Posters> myPosts;
 
     public User(String name, String password) {
         this.name = name;
         this.password = password;
-        this.favorites = new ArrayList<>();
+        this.myPosts = new ArrayList<>();
     }
 }

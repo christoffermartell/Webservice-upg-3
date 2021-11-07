@@ -1,8 +1,7 @@
 package com.example.Webserviceupg3.Services;
-
 import com.example.Webserviceupg3.Models.Posters;
+import com.example.Webserviceupg3.Models.User;
 import com.example.Webserviceupg3.Repositories.PosterRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -10,27 +9,33 @@ import java.util.Collection;
 @Service
 public class PostService {
 
-    @Autowired
-    PosterRepository posterRepository;
+    private final PosterRepository posterRepository;
 
-    public int createPost(Posters posters) {
-        Posters existing = posterRepository.getPost(posters.getTitle());
-        if (existing != null)
-            return 1;
+    public PostService(PosterRepository posterRepository) {
+        this.posterRepository = posterRepository;
+    }
 
-        posterRepository.save(posters);
+    public Posters createPost(Posters posters, User user) {
 
-        return 0;
+        if (posterRepository.save(posters, user) != null) {
+            return new Posters(posters.getTitle(), posters.getContent(), posters.getUsername());
+        } else {
+            return null;
+        }
+
     }
 
     public Collection<Posters> getPosters() {
         return posterRepository.getPosters();
     }
 
-    public boolean deletePosts(String title){
-        if (posterRepository.getPost(title) == null)
+
+    public boolean deletePost(String post) {
+        if (posterRepository.getPost(post) == null) {
             return false;
-        posterRepository.removePoster(title);
+
+        }
+        posterRepository.removePoster(post);
         return true;
     }
 

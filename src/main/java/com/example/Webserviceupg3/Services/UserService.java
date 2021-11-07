@@ -1,11 +1,11 @@
 package com.example.Webserviceupg3.Services;
-
 import com.example.Webserviceupg3.Controllers.UserController;
+import com.example.Webserviceupg3.Models.Posters;
 import com.example.Webserviceupg3.Models.User;
+import com.example.Webserviceupg3.Repositories.PosterRepository;
 import com.example.Webserviceupg3.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -15,6 +15,8 @@ public class UserService {
 
     @Autowired
     UserRepository userRepository;
+    PosterRepository posterRepository;
+
 
     Map<String, User> tokens = new HashMap<>();
 
@@ -40,6 +42,17 @@ public class UserService {
         tokens.put(token, user);
         return token;
     }
+
+    public boolean removePost(String username, String title) {
+        if (username == null || title == null) {
+            return false;
+        }
+
+        Posters post = posterRepository.getSpecificPost(title);
+        userRepository.removePost(username, post);
+        return true;
+    }
+
 
     public void logout(String token) {
         tokens.remove(token);
